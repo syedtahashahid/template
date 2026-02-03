@@ -1,0 +1,14 @@
+# Pure Next.js Static App - Redirects for client-side routing
+# Cloudflare Pages _redirects file
+
+# Redirect non-canonical /company (without slug) to search
+/company /search 301
+/company/ /search 301
+
+# Note: Invalid URL patterns (like /contact?subject=*, /companies/q?*) are handled
+# by the middleware which will return 404 and log the error.
+# Cloudflare Pages doesn't support 404 status codes in redirect rules.
+
+# Rewrite cariversity routes to index.html for client-side routing
+# 200 = rewrite (not redirect), URL stays the same
+

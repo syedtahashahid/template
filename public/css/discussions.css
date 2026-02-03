@@ -1,0 +1,167 @@
+/**
+ * Discussions CSS - Animations and Transitions
+ */
+
+/* Vote counter update animation */
+.vote-updating {
+  animation: pulse 0.5s ease-in-out;
+  color: #f59e0b !important;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* New comment slide-in animation */
+.comment-new {
+  animation: slideInFromTop 0.5s ease-out;
+  background-color: rgba(251, 191, 36, 0.1);
+  border-left: 3px solid #f59e0b;
+  padding-left: 0.5rem;
+  margin-left: -0.5rem;
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade out highlight after animation */
+.comment-new {
+  transition: background-color 1.5s ease-out, border-left-color 1.5s ease-out;
+}
+
+.comment-new:not(:hover) {
+  background-color: transparent;
+  border-left-color: transparent;
+}
+
+/* Vote button hover effects */
+.vote-btn-up:hover,
+.vote-btn-down:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+
+.vote-btn-up:active,
+.vote-btn-down:active {
+  transform: scale(0.95);
+}
+
+/* Smooth transitions for vote button colors */
+.vote-btn-up,
+.vote-btn-down {
+  transition: color 0.2s ease, transform 0.1s ease;
+}
+
+/* Comment form submission animation */
+#thread-create-form button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Loading spinner for async operations */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+/* Sort button transitions */
+button[onclick^="handleSortChange"] {
+  transition: all 0.2s ease;
+}
+
+button[onclick^="handleSortChange"]:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* New comments badge animation */
+#new-comments-badge {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Photo preview fade-in */
+#photo-preview img {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Video thumbnail play button hover */
+[id^="video-thumbnail-"] svg {
+  transition: transform 0.2s ease;
+}
+
+[id^="video-thumbnail-"]:hover svg {
+  transform: scale(1.1);
+}
+
+/* Comment container transitions */
+#comments-container {
+  transition: opacity 0.3s ease;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Disabled button styles */
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Focus styles for accessibility */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+

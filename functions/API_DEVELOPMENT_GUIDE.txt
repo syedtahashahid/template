@@ -1,0 +1,161 @@
+API ENDPOINT DEVELOPMENT GUIDE
+================================
+
+This guide explains how to add new API endpoints to the Carrier Info project, covering authentication (HMAC vs User Session), database access, and error logging standards.
+
+--------------------------------------------------------------------------------
+1. AUTHENTICATION STRATEGY & MIDDLEWARE CONFIGURATION
+--------------------------------------------------------------------------------
+
+Before creating your endpoint, decide on the authentication method:
+
+TYPE A: HMAC Authenticated (Machine-to-Machine / Internal App Calls)
+- DEFAULT for all `/api/*` routes.
+- Requires `X-API-Signature` and `X-API-Timestamp` headers.
+- NO changes needed in `_middleware.js` (unless you need to manually Route it for `enhancedEnv` injection, see below).
+
+TYPE B: User Authenticated (Browser Session / Cookie)
+- Used for actions performed by logged-in users (e.g., posting comments, updating profile).
+- MUST skip HMAC verification in `_middleware.js`.
+- MUST use `requireAuthenticatedUser` in your handler.
+
+TYPE C: Public / Open API
+- Used for read-only public data or initial auth steps (e.g., getting a list of reviews, login).
+- MUST skip HMAC verification in `_middleware.js`.
+
+HOW TO CONFIGURE IN `functions/_middleware.js`:
+
+1.  To SKIP HMAC (for Type B or C):
+    Find the "Skip HMAC verification" block (approx lines 2075+).
+    Add your route path:
+    ```javascript
+    if (url.pathname.startsWith('/api/my-new-route') || ...) {
+      return next();
+    }
+    ```
+
+2.  To INJECT `enhancedEnv` (CRITICAL for Database Access):
+    If your route handles complex logic or needs the DB proxy, you typically need `enhancedEnv`.
+    The middleware automatically creates `enhancedEnv` (which contains `env.DB`).
+    You often need to explicitly dispatch your route in the middleware if it's not automatically caught, or ensure your handler receives `env`.
+    
+    *Modern Pattern:* Most directory-based routing works, but check `_middleware.js` to see if you need to add a block to explicitly pass `enhancedEnv`:
+    ```javascript
+    // Handle /api/my-new-route
+    if (url.pathname.startsWith('/api/my-new-route')) {
+       const handler = await import('./api/my-new-route/index.js');
+       return await handler.onRequest({ request, env: enhancedEnv, next });
+    }
+    ```
+
+--------------------------------------------------------------------------------
+2. CREATING THE ENDPOINT FILE
+--------------------------------------------------------------------------------
+
+File Location: `functions/api/path/to/endpoint.js`
+
+STANDARD IMPORTS:
+Depending on your folder depth, adjust paths (e.g., `../../utils/` vs `../../../utils/`).
+
+```javascript
+// For User Auth
+import { requireAuthenticatedUser } from '../../utils/userAuth.js';
+
+// For Error Logging
+import { 
+  logError, 
+  ERROR_LEVEL, 
+  ERROR_SOURCE, 
+  ERROR_TYPE, 
+  extractUserInfoFromRequest 
+} from '../../utils/errorLogging.js';
+```
+
+--------------------------------------------------------------------------------
+3. HANDLER STRUCTURE & DATABASE ACCESS
+--------------------------------------------------------------------------------
+
+Access the database via `env.DB`. It is a proxy object supporting:
+- `prepare(sql)`
+- `bind(...params)`
+- `first()` - Returns one object or null
+- `all()` - Returns { results: [...] }
+- `run()` - Returns { meta: { changes, last_row_id } }
+
+EXAMPLE TEMPLATE (User Authenticated POST):
+
+```javascript
+export async function onRequestPost(context) {
+  const { request, env } = context;
+
+  try {
+    // 1. Authenticate User (if Type B)
+    const auth = await requireAuthenticatedUser(request, env);
+    const user = auth.user; // User object is now available
+
+    // 2. Parse Request
+    const data = await request.json();
+
+    // 3. Database Interaction
+    // Use parameterized queries to prevent SQL injection
+    const stmt = env.DB.prepare(`
+      INSERT INTO my_table (user_id, content, created_at)
+      VALUES (?, ?, NOW())
+      RETURNING id
+    `);
+    
+    // Bind parameters and execute
+    const result = await stmt.bind(user.id, data.content).first();
+
+    // 4. Return Success Response
+    return new Response(JSON.stringify({
+      success: true,
+      data: result
+    }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+  } catch (err) {
+    // 5. Error Handling & Logging
+    console.error('API Error:', err);
+
+    // Async background logging (doesn't block response)
+    const userInfo = await extractUserInfoFromRequest(env, request);
+    context.waitUntil(logError(env, {
+      level: ERROR_LEVEL.ERROR,
+      source: ERROR_SOURCE.API,     // or ERROR_SOURCE.FRONTEND depending on context
+      error_type: ERROR_TYPE.DATABASE_ERROR,
+      message: err.message,
+      stack_trace: err.stack,
+      ...userInfo
+    }));
+
+    return new Response(JSON.stringify({
+      success: false,
+      error: err.message
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+```
+
+--------------------------------------------------------------------------------
+4. GLOBAL VARIABLES & ENV
+--------------------------------------------------------------------------------
+
+- `env.DB`: The PostgreSQL Proxy client.
+- `env.API_SECRET` / `env.VITE_API_SECRET`: Secrets for HMAC or internal keys.
+- `context.waitUntil(promise)`: Use this for operations that shouldn't block the response (like logging).
+
+--------------------------------------------------------------------------------
+SUMMARY CHECKLIST
+--------------------------------------------------------------------------------
+[ ] Created file in `functions/api/...`
+[ ] Implemented `onRequestGet` / `onRequestPost` / etc.
+[ ] Added Imports (Auth & Logging)
+[ ] Configured `_middleware.js` (Skip HMAC if public/user-auth)
+[ ] Configured `_middleware.js` (Dispatch with `enhancedEnv` if needed)
+[ ] Used `env.DB.prepare(...).bind(...)`
+[ ] Added Try/Catch with `logError`

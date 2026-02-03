@@ -1,0 +1,20 @@
+{
+  "name": "template",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node miniflare-server.js",
+    "deploy": "wrangler pages deploy public",
+    "dev:miniflare": "node miniflare-server.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "dotenv": "^17.2.3",
+    "miniflare": "^4.20251202.1",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "wrangler": "^4.53.0"
+  }
+}

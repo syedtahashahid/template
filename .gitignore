@@ -1,0 +1,93 @@
+# Logs
+/logs/
+*.log
+!functions/api/logs/
+!functions/api/admin/logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+dist
+dist-ssr
+.next
+.wrangler
+# Environment variables for Cloudflare Pages
+# Note: .env and .env.production are committed for Cloudflare Pages deployment
+# Only exclude local development files
+.dev.vars
+.wrangler
+
+
+# API Credentials - Allow .api-credentials.json for Cloudflare Pages
+# Only exclude backup credential files
+# Note: .api-credentials.json is explicitly allowed (not listed here)
+
+# Google OAuth Credentials - Keep secure, don't commit
+
+# Keep sensitive backup files out
+*-backup.json
+*-old.json
+
+# Database backup files
+!**/schema.sql
+!**/migrations/**/*.sql
+
+# Large database files (over 99MB)
+local.db
+*.db
+!**/migrations/**/*.db
+# SQLite database files
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# Large archive files (over 99MB)
+*.zip
+*.tar.gz
+*.tar
+*.gz
+!**/migrations/**/*.zip
+!**/migrations/**/*.tar.gz
+
+# Large backup files
+backupdb.sql.zip
+*-backup.zip
+*-backup.tar.gz
+
+# Exclude files larger than 99MB (standard repository file size limit)
+# Use git-lfs for files that need to be tracked but are large
+
+# Build outputs
+build
+.next
+.vercel
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+*.tsbuildinfo
+
+# Build cache
+.cache/

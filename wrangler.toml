@@ -1,0 +1,32 @@
+name = "template"
+
+# Cloudflare Pages configuration
+pages_build_output_dir = "public"
+
+# Compatibility date for Cloudflare Workers runtime
+# This ensures consistent behavior across different deployments
+compatibility_date = "2025-12-07"
+
+# Database Configuration
+# Note: This application uses PostgreSQL via database proxy (e.g., database.yourdomain.com)
+# The DB binding is created by the middleware which routes to PostgreSQL
+# No D1 database bindings are needed
+
+[env.production]
+[env.production.vars]
+# Build Configuration
+NODE_ENV = "production"
+
+[env.preview]
+[env.preview.vars]
+# Build Configuration
+NODE_ENV = "production"
+
+# NOTE: Cron triggers are not supported in wrangler.toml for Cloudflare Pages.
+# To set up the email retry queue cron job:
+# 1. Go to Cloudflare Dashboard > Pages > Your Project > Settings > Functions
+# 2. Add a Cron Trigger:
+#    - Schedule: */15 * * * * (every 15 minutes)
+#    - Path: /api/email/cron-retry
+# OR use an external cron service (e.g., cron-job.org) to call:
+#    https://yourdomain.com/api/email/cron-retry
